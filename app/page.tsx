@@ -43,6 +43,7 @@ export default function Component() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [showDepartments, setShowDepartments] = useState(false)
   const departmentsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [currentHeroBanner, setCurrentHeroBanner] = useState(0)
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -53,12 +54,12 @@ export default function Component() {
       if (direction === 'left') {
         newScrollPosition = carouselRef.current.scrollLeft - scrollAmount
         if (newScrollPosition < 0) {
-          newScrollPosition = 0
+          newScrollPosition = maxScroll
         }
       } else {
         newScrollPosition = carouselRef.current.scrollLeft + scrollAmount
         if (newScrollPosition > maxScroll) {
-          newScrollPosition = maxScroll
+          newScrollPosition = 0
         }
       }
 
@@ -126,6 +127,16 @@ export default function Component() {
       clearTimeout(departmentsTimeoutRef.current)
     }
     setShowDepartments(false)
+  }
+
+  const changeHeroBanner = (direction: 'left' | 'right') => {
+    setCurrentHeroBanner(prev => {
+      if (direction === 'left') {
+        return prev === 0 ? heroBanners.length - 1 : prev - 1
+      } else {
+        return (prev + 1) % heroBanners.length
+      }
+    })
   }
 
   return (
@@ -239,32 +250,32 @@ export default function Component() {
                   variant="ghost" 
                   size="icon" 
                   className="absolute left-4 top-1/2 z-10 -translate-y-1/2 bg-white/10 text-white hover:bg-white/20"
+                  onClick={() => changeHeroBanner('left')}
                 >
                   <ChevronLeft className="h-8 w-8" />
                 </Button>
                 
                 <div className="relative">
                   <Image
-                    src="/placeholder.svg"
-                    alt="Esquenta Black"
+                    src={heroBanners[currentHeroBanner].image}
+                    alt={heroBanners[currentHeroBanner].alt}
                     width={1200}
                     height={400}
                     className="w-full"
                   />
                   <div className="absolute bottom-8 left-8 space-y-4">
                     <Badge className="bg-black/80 text-white px-4 py-2">
-                      🔥 ESQUENTA BLACK
+                      {heroBanners[currentHeroBanner].badge}
                     </Badge>
                     <h1 className="text-4xl font-bold text-white">
-                      Renove seu<br />
-                      Espaço Gamer
+                      {heroBanners[currentHeroBanner].title}
                     </h1>
                     <div className="space-y-2">
                       <div className="text-2xl font-bold text-[#FFB800]">
-                        ATÉ 30% OFF
+                        {heroBanners[currentHeroBanner].discount}
                       </div>
                       <Button className="bg-[#F15A24] text-white hover:bg-[#F15A24]/90">
-                        APROVEITE AQUI
+                        {heroBanners[currentHeroBanner].buttonText}
                       </Button>
                     </div>
                   </div>
@@ -274,6 +285,7 @@ export default function Component() {
                   variant="ghost" 
                   size="icon" 
                   className="absolute right-4 top-1/2 z-10 -translate-y-1/2 bg-white/10 text-white hover:bg-white/20"
+                  onClick={() => changeHeroBanner('right')}
                 >
                   <ChevronRight className="h-8 w-8" />
                 </Button>
@@ -340,7 +352,7 @@ export default function Component() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-6">
                   {highlightProducts.map((product) => (
-                    <div key={product.id} className="border rounded-lg p-4 flex flex-col">
+                    <div key={product.id} className="border rounded-lg p-4 flex flex-col group">
                       <div className="relative mb-4 aspect-square">
                         <Image
                           src={product.image}
@@ -361,7 +373,7 @@ export default function Component() {
                         ou até 12x de R$ {(parseFloat(product.price.replace('.', '').replace(',', '.')) / 12).toFixed(2)}
                       </div>
                       <Button 
-                        className="w-full bg-[#F15A24] text-white hover:bg-[#F15A24]/90"
+                        className="w-full bg-[#F15A24] text-white hover:bg-[#F15A24]/90 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => addToCart(product)}
                       >
                         COMPRAR
@@ -395,7 +407,7 @@ export default function Component() {
                   >
                     {bestSellers.map((product, index) => (
                       <div key={index} className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6 flex-shrink-0 snap-start p-4">
-                        <div className="bg-white rounded-lg shadow-md p-4 h-full flex flex-col">
+                        <div className="bg-white rounded-lg shadow-md p-4 h-full flex flex-col group">
                           <div className="relative mb-4 aspect-square">
                             <Image
                               src={product.image}
@@ -407,7 +419,7 @@ export default function Component() {
                           <h3 className="text-sm font-medium mb-2 flex-grow">{product.name}</h3>
                           <div className="text-lg font-bold">R$ {product.price}</div>
                           <Button 
-                            className="w-full mt-2 bg-[#F15A24] text-white hover:bg-[#F15A24]/90"
+                            className="w-full mt-2 bg-[#F15A24] text-white hover:bg-[#F15A24]/90 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={() => addToCart(product)}
                           >
                             COMPRAR
@@ -501,7 +513,7 @@ export default function Component() {
                 <h2 className="text-2xl font-bold mb-6">Novidades</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {newProducts.map((product, index) => (
-                    <div key={index} className="bg-white rounded-lg shadow-md p-4">
+                    <div key={index} className="bg-white rounded-lg shadow-md p-4 group">
                       <div className="relative aspect-square mb-4">
                         <Image
                           src={product.image}
@@ -513,7 +525,7 @@ export default function Component() {
                       <h3 className="text-lg font-medium mb-2">{product.name}</h3>
                       <div className="text-xl font-bold mb-2">R$ {product.price}</div>
                       <Button 
-                        className="w-full bg-[#F15A24] text-white hover:bg-[#F15A24]/90"
+                        className="w-full bg-[#F15A24] text-white hover:bg-[#F15A24]/90 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => addToCart(product)}
                       >
                         COMPRAR
@@ -664,20 +676,30 @@ const departments: Department[] = [
 ]
 
 const bestSellers = [
-  { id: 1, name: "Product 1", image: "/placeholder.svg", price: "159,99" },
-  { id: 2, name: "Product 2", image: "/placeholder.svg", price: "179,99" },
-  { id: 3, name: "Product 3", image: "/placeholder.svg", price: "999,99" },
-  { id: 4, name: "Product 4", image: "/placeholder.svg", price: "799,99" },
-  { id: 5, name: "Product 5", image: "/placeholder.svg", price: "899,99" },
-  { id: 6, name: "Product 6", image: "/placeholder.svg", price: "249,99" },
+  { id: 1, name: "Produto 1", image: "/placeholder.svg", price: "159,99" },
+  { id: 2, name: "Produto 2", image: "/placeholder.svg", price: "179,99" },
+  { id: 3, name: "Produto 3",image: "/placeholder.svg", price: "999,99" },
+  { id: 4, name: "Produto 4", image: "/placeholder.svg", price: "799,99" },
+  { id: 5, name: "Produto 5", image: "/placeholder.svg", price: "899,99" },
+  { id: 6, name: "Produto 6", image: "/placeholder.svg", price: "249,99" },
 ]
 
 const products = [
-  { id: 1, name: "Product 1", image: "/placeholder.svg", price: "1.509,99", originalPrice: "1.899,99", reviews: 67 },
-  { id: 2, name: "Product 2",image: "/placeholder.svg", price: "597,99", originalPrice: "799,99", reviews: 122 },
-  { id: 3, name: "Product 3", image: "/placeholder.svg", price: "199,99", originalPrice: "299,99", reviews: 143 },
-  { id: 4, name: "Product 4", image: "/placeholder.svg", price: "1.359,99", originalPrice: "1.599,99", reviews: 89 },
-  { id: 5, name: "Product 5", image: "/placeholder.svg", price: "4.399,99", originalPrice: "4.999,99", reviews: 67 },
+  { id: 1, name: "Produto 1", image: "/placeholder.svg", price: "1.509,99", originalPrice: "1.899,99", reviews: 67 },
+  { id: 2, name: "Produto 2", image: "/placeholder.svg", price: "597,99", originalPrice: "799,99", reviews: 122 },
+  { id: 3, name: "Produto 3", image: "/placeholder.svg", price: "199,99", originalPrice: "299,99", reviews: 143 },
+  { id: 4, name: "Produto 4", image: "/placeholder.svg", price: "1.359,99", originalPrice: "1.599,99", reviews: 89 },
+  { id: 5, name: "Produto 5", image: "/placeholder.svg", price: "4.399,99", originalPrice: "4.999,99", reviews: 67 },
+  { id: 6, name: "Produto 6", image: "/placeholder.svg", price: "2.999,99", originalPrice: "3.499,99", reviews: 78 },
+  { id: 7, name: "Produto 7", image: "/placeholder.svg", price: "899,99", originalPrice: "1.099,99", reviews: 56 },
+  { id: 8, name: "Produto 8", image: "/placeholder.svg", price: "1.799,99", originalPrice: "2.199,99", reviews: 91 },
+  { id: 9, name: "Produto 9", image: "/placeholder.svg", price: "3.299,99", originalPrice: "3.799,99", reviews: 103 },
+  { id: 10, name: "Produto 10", image: "/placeholder.svg", price: "599,99", originalPrice: "749,99", reviews: 45 },
+  { id: 11, name: "Produto 11", image: "/placeholder.svg", price: "2.499,99", originalPrice: "2.999,99", reviews: 82 },
+  { id: 12, name: "Produto 12", image: "/placeholder.svg", price: "1.099,99", originalPrice: "1.399,99", reviews: 71 },
+  { id: 13, name: "Produto 13", image: "/placeholder.svg", price: "799,99", originalPrice: "999,99", reviews: 59 },
+  { id: 14, name: "Produto 14", image: "/placeholder.svg", price: "3.999,99", originalPrice: "4.599,99", reviews: 97 },
+  { id: 15, name: "Produto 15", image: "/placeholder.svg", price: "1.299,99", originalPrice: "1.599,99", reviews: 63 },
 ]
 
 const highlightProducts = [
@@ -692,4 +714,47 @@ const newProducts = [
   { id: 1, name: "Smartphone 5G", image: "/placeholder.svg", price: "2.999,99" },
   { id: 2, name: "Notebook Ultrafino", image: "/placeholder.svg", price: "4.599,99" },
   { id: 3, name: "Smart TV 4K 55\"", image: "/placeholder.svg", price: "3.299,99" },
+]
+
+const heroBanners = [
+  {
+    image: "/placeholder.svg",
+    alt: "Esquenta Black",
+    badge: "🔥 ESQUENTA BLACK",
+    title: "Renove seu\nEspaço Gamer",
+    discount: "ATÉ 30% OFF",
+    buttonText: "APROVEITE AQUI"
+  },
+  {
+    image: "/placeholder.svg",
+    alt: "Lançamentos Tech",
+    badge: "🚀 NOVIDADES",
+    title: "Tecnologia de\nÚltima Geração",
+    discount: "LANÇAMENTOS",
+    buttonText: "CONFIRA AGORA"
+  },
+  {
+    image: "/placeholder.svg",
+    alt: "Oferta Relâmpago",
+    badge: "⚡ OFERTA RELÂMPAGO",
+    title: "24 Horas de\nPreços Insanos",
+    discount: "ATÉ 50% OFF",
+    buttonText: "COMPRE JÁ"
+  },
+  {
+    image: "/placeholder.svg",
+    alt: "Semana do Consumidor",
+    badge: "🛒 SEMANA DO CONSUMIDOR",
+    title: "As Melhores\nOfertas do Ano",
+    discount: "ATÉ 40% OFF",
+    buttonText: "APROVEITE"
+  },
+  {
+    image: "/placeholder.svg",
+    alt: "Mega Saldão",
+    badge: "💥 MEGA SALDÃO",
+    title: "Produtos com\nAté 70% OFF",
+    discount: "ÚLTIMAS UNIDADES",
+    buttonText: "NÃO PERCA"
+  }
 ]
